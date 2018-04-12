@@ -7,11 +7,19 @@
 					{{if .ReadmeInList}}
 						<strong>{{.FileName}}</strong>
 					{{else}}
-						<strong>{{.FileName}}</strong> <span class="text grey normal">{{FileSize .FileSize}}{{if .IsLFSFile}} ({{.i18n.Tr "repo.stored_lfs"}}){{end}}</span>
+						<strong>{{.FileName}}</strong>
+						<span class="text grey normal">{{FileSize .FileSize}}
+							{{if .IsLFSFile}} ({{.i18n.Tr "repo.stored_lfs"}}){{end}}
+							{{if .IsAnnexed}} ({{.i18n.Tr "repo.stored_annex"}}){{end}}
+						</span>
 					{{end}}
 				{{else}}
 					<i class="file text outline icon ui left"></i>
-					<strong>{{.FileName}}</strong> <span class="text grey normal">{{FileSize .FileSize}}{{if .IsLFSFile}} ({{.i18n.Tr "repo.stored_lfs"}}){{end}}</span>
+					<strong>{{.FileName}}</strong>
+					<span class="text grey normal">{{FileSize .FileSize}}
+						{{if .IsLFSFile}} ({{.i18n.Tr "repo.stored_lfs"}}){{end}}
+						{{if .IsAnnexed}} ({{.i18n.Tr "repo.stored_annex"}}){{end}}
+					</span>
 				{{end}}
 			</div>
 			<div class="six wide right aligned column">

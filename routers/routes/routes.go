@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"code.gitea.io/gitea/models"
+	"code.gitea.io/gitea/modules/annex"
 	"code.gitea.io/gitea/modules/auth"
 	"code.gitea.io/gitea/modules/context"
 	"code.gitea.io/gitea/modules/lfs"
@@ -703,6 +704,9 @@ func RegisterRoutes(m *macaron.Macaron) {
 					ctx.NotFound("", nil)
 				})
 			}, ignSignInAndCsrf)
+			m.Group("\\.git/info/annex", func() {
+				m.Get("/objects/:key", annex.GetAnnexHandler)
+			}, context.RepoAssignment())
 			m.Any("/*", ignSignInAndCsrf, repo.HTTP)
 			m.Head("/tasks/trigger", repo.TriggerTask)
 		})

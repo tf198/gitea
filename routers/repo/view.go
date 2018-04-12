@@ -11,12 +11,14 @@ import (
 	"fmt"
 	gotemplate "html/template"
 	"io/ioutil"
+	"os"
 	"path"
 	"strconv"
 	"strings"
 
 	"code.gitea.io/git"
 	"code.gitea.io/gitea/models"
+	"code.gitea.io/gitea/modules/annex"
 	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/context"
 	"code.gitea.io/gitea/modules/highlight"
@@ -158,6 +160,39 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry, treeLink, rawLink st
 	buf := make([]byte, 1024)
 	n, _ := dataRc.Read(buf)
 	buf = buf[:n]
+
+	if blob.IsLink() && setting.GitAnnex.Enabled {
+		lnk := string(buf)
+		i := strings.Index(lnk, ".git/annex/objects/")
+		if i != -1 {
+			ctx.Data["IsAnnexed"] = true
+			key := path.Base(lnk)
+
+			lnk = fmt.Sprintf("%s%s.git/info/annex/objects/%s", setting.AppURL, ctx.Repo.Repository.FullName(), key)
+			ctx.Data["RawFileLink"] = lnk
+
+			filepath, err := annex.ContentLocation(key, ctx.Repo.GitRepo.Path)
+			if err == nil {
+
+				f, err := os.Open(filepath)
+				if err == nil {
+					defer f.Close()
+
+					stat, err := f.Stat()
+					if err == nil {
+						ctx.Data["FileSize"] = stat.Size()
+
+						// re-read the first 1024 bytes of the file.
+						buf = make([]byte, 1024)
+						n, _ = f.Read(buf)
+						buf = buf[:n]
+					}
+				}
+			} else {
+				ctx.Data["IsAvailable"] = false
+			}
+		}
+	}
 
 	isTextFile := base.IsTextFile(buf)
 	ctx.Data["IsTextFile"] = isTextFile
